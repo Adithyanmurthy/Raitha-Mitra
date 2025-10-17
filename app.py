@@ -47,6 +47,24 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'raitha-mitra-secret-key-2025-cha
 db = DatabaseManager()
 
 # --- 2. Routes for serving HTML pages ---
+
+# Health check endpoint for Render
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring"""
+    try:
+        return jsonify({
+            'status': 'healthy',
+            'model_loaded': model is not None,
+            'database': 'connected',
+            'gemini_configured': gemini_text_model is not None
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 500
+
 @app.route('/')
 def home():
     return render_template('home.html')

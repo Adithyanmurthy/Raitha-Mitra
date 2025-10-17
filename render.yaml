@@ -5,8 +5,9 @@ services:
     region: oregon
     plan: free
     branch: main
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    buildCommand: bash build.sh
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level info
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -16,3 +17,7 @@ services:
         sync: false
       - key: WEATHERAPI_KEY
         sync: false
+      - key: FLASK_DEBUG
+        value: False
+      - key: HOST
+        value: 0.0.0.0
