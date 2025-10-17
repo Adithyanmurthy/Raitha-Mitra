@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Assistant - Raitha Mitra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4 px-6 fixed top-0 w-full z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <button id="backBtn" class="text-gray-600 hover:text-green-600 transition">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-comments text-green-600 text-2xl"></i>
+                    <h1 class="text-xl font-bold text-gray-800">Chat Assistant</h1>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <!-- Language Toggle -->
+                <div class="bg-gray-50 rounded-lg p-2 flex items-center space-x-2">
+                    <i class="fas fa-language text-gray-500"></i>
+                    <select id="languageSelect" class="bg-transparent border-none outline-none text-sm font-medium text-gray-700 cursor-pointer">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी</option>
+                        <option value="kn">ಕನ್ನಡ</option>
+                        <option value="te">తెలుగు</option>
+                        <option value="ta">தமிழ்</option>
+                        <option value="ml">മലയാളം</option>
+                        <option value="mr">मराठी</option>
+                        <option value="gu">ગુજરાતી</option>
+                        <option value="bn">বাংলা</option>
+                        <option value="pa">ਪੰਜਾਬੀ</option>
+                    </select>
+                </div>
+                <span id="userWelcome" class="text-sm text-gray-600 hidden md:inline"></span>
+                <div class="relative">
+                    <button id="profileBtn" class="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-3 py-2 rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg text-sm">
+                        <i class="fas fa-user"></i>
+                        <span class="hidden sm:inline">Profile</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        <div class="py-2">
+                            <button id="viewProfileBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="fas fa-user-circle mr-2"></i>View Profile
+                            </button>
+                            <button id="changePasswordBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="fas fa-key mr-2"></i>Change Password
+                            </button>
+                            <button id="predictionHistoryBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="fas fa-history mr-2"></i>Past Activities
+                            </button>
+                            <hr class="my-2">
+                            <button id="logoutBtn" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 flex items-center">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Chat Container -->
+    <main class="pt-20 pb-24 px-4">
+        <div class="max-w-7xl mx-auto flex gap-4">
+            <!-- Chat History Sidebar -->
+            <div id="chatHistorySidebarContainer" class="w-80 bg-white rounded-2xl shadow-lg p-4 hidden lg:block" style="height: calc(100vh - 140px); overflow-y: auto;">
+                <div class="flex items-center justify-between mb-4 sticky top-0 bg-white pb-2 border-b border-gray-100">
+                    <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-history text-green-600"></i>
+                        Chat History
+                    </h3>
+                    <button id="clearHistoryBtn" class="text-gray-400 hover:text-red-500 text-sm transition-colors" title="Clear all history">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div id="chatHistorySidebar" class="space-y-2">
+                    <!-- History items will be added here -->
+                </div>
+            </div>
+
+            <!-- Mobile History Toggle -->
+            <button id="mobileHistoryToggle" class="lg:hidden fixed bottom-24 left-4 bg-green-600 text-white p-3 rounded-full shadow-lg z-50 hover:bg-green-700 transition">
+                <i class="fas fa-history"></i>
+            </button>
+
+            <!-- Main Chat Area -->
+            <div class="flex-1">
+                <!-- Chat Messages Container -->
+                <div id="chatMessages" class="bg-white rounded-2xl shadow-lg p-6 min-h-[calc(100vh-220px)] max-h-[calc(100vh-220px)] overflow-y-auto mb-4">
+                <!-- Welcome Message -->
+                <div class="text-center py-8" id="welcomeMessage">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-robot text-green-600 text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome to Chat Assistant</h2>
+                    <p class="text-gray-600 max-w-md mx-auto">
+                        Ask me anything about farming, crops, diseases, weather, or best practices. 
+                        I remember our conversations to provide personalized advice.
+                    </p>
+                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                        <button class="suggestion-btn bg-gray-50 hover:bg-gray-100 p-3 rounded-lg text-left transition">
+                            <i class="fas fa-seedling text-green-600 mr-2"></i>
+                            <span class="text-sm text-gray-700">What crops should I plant this season?</span>
+                        </button>
+                        <button class="suggestion-btn bg-gray-50 hover:bg-gray-100 p-3 rounded-lg text-left transition">
+                            <i class="fas fa-bug text-red-600 mr-2"></i>
+                            <span class="text-sm text-gray-700">How do I treat pest infestations?</span>
+                        </button>
+                        <button class="suggestion-btn bg-gray-50 hover:bg-gray-100 p-3 rounded-lg text-left transition">
+                            <i class="fas fa-tint text-blue-600 mr-2"></i>
+                            <span class="text-sm text-gray-700">When should I irrigate my crops?</span>
+                        </button>
+                        <button class="suggestion-btn bg-gray-50 hover:bg-gray-100 p-3 rounded-lg text-left transition">
+                            <i class="fas fa-chart-line text-purple-600 mr-2"></i>
+                            <span class="text-sm text-gray-700">How can I improve my yield?</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat messages will be dynamically added here -->
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="hidden bg-white rounded-lg shadow p-4 mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-green-600 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                        <div class="w-2 h-2 bg-green-600 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                        <div class="w-2 h-2 bg-green-600 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                    </div>
+                    <span class="text-sm text-gray-600">AI is thinking...</span>
+                </div>
+            </div>
+        </div>
+        </div>
+    </main>
+
+    <!-- Message Input (Fixed at bottom) -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+        <div class="max-w-4xl mx-auto p-4">
+            <form id="chatForm" class="flex items-end space-x-3">
+                <div class="flex-1">
+                    <textarea 
+                        id="messageInput" 
+                        rows="1"
+                        placeholder="Type your farming question here..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                        style="max-height: 120px;"
+                    ></textarea>
+                </div>
+                <button 
+                    type="submit" 
+                    id="sendBtn"
+                    class="bg-gradient-to-r from-emerald-500 to-green-600 text-white p-4 rounded-xl hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled
+                >
+                    <i class="fas fa-paper-plane text-lg"></i>
+                </button>
+            </form>
+            <div class="mt-2 text-xs text-gray-500 text-center">
+                <i class="fas fa-info-circle mr-1"></i>
+                Press Enter to send, Shift+Enter for new line
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>

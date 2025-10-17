@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yield Prediction - Raitha Mitra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4 px-6">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <button id="backBtn" class="text-gray-600 hover:text-green-600 transition">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-chart-line text-green-600 text-2xl"></i>
+                    <h1 class="text-xl font-bold text-gray-800">Yield Prediction</h1>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="viewHistoryBtn" class="text-gray-600 hover:text-green-600 transition hidden md:inline-flex items-center">
+                    <i class="fas fa-history mr-2"></i>View History
+                </button>
+                <span id="userWelcome" class="text-sm text-gray-600 hidden md:inline"></span>
+                <div class="relative">
+                    <button id="profileBtn" class="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-3 py-2 rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg text-sm">
+                        <i class="fas fa-user"></i>
+                        <span class="hidden sm:inline">Profile</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        <div class="py-2">
+                            <button id="viewProfileBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="fas fa-user-circle mr-2"></i>View Profile
+                            </button>
+                            <button id="changePasswordBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="fas fa-key mr-2"></i>Change Password
+                            </button>
+                            <button id="predictionHistoryBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="fas fa-history mr-2"></i>Past Activities
+                            </button>
+                            <hr class="my-2">
+                            <button id="logoutBtn" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 flex items-center">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Prediction Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">
+                            <i class="fas fa-seedling mr-2 text-green-600"></i>Predict Yield
+                        </h3>
+                        
+                        <form id="predictionForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Crop Type</label>
+                                <select id="cropType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="">Select crop...</option>
+                                    <option value="rice">Rice</option>
+                                    <option value="wheat">Wheat</option>
+                                    <option value="corn">Corn</option>
+                                    <option value="tomato">Tomato</option>
+                                    <option value="potato">Potato</option>
+                                    <option value="cotton">Cotton</option>
+                                    <option value="sugarcane">Sugarcane</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Planting Date</label>
+                                <input type="date" id="plantingDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Farm Size (acres)</label>
+                                <input type="number" id="farmSize" step="0.1" min="0.1" placeholder="e.g., 2.5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Soil Type</label>
+                                <select id="soilType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="">Select soil type...</option>
+                                    <option value="clay">Clay</option>
+                                    <option value="loam">Loam</option>
+                                    <option value="sandy">Sandy</option>
+                                    <option value="silt">Silt</option>
+                                    <option value="peat">Peat</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Irrigation Type</label>
+                                <select id="irrigationType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="">Select irrigation...</option>
+                                    <option value="drip">Drip Irrigation</option>
+                                    <option value="sprinkler">Sprinkler</option>
+                                    <option value="flood">Flood Irrigation</option>
+                                    <option value="rainfed">Rainfed</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white py-3 rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg font-semibold">
+                                <i class="fas fa-chart-line mr-2"></i>Generate Prediction
+                            </button>
+                        </form>
+
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <p class="text-xs text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                AI analyzes weather patterns, soil conditions, and historical data to predict your crop yield.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prediction Results -->
+                <div class="lg:col-span-2">
+                    <!-- Loading State -->
+                    <div id="loadingState" class="hidden bg-white rounded-xl shadow-lg p-12 text-center">
+                        <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16 mb-4 mx-auto"></div>
+                        <p class="text-lg font-semibold text-gray-600">Analyzing your farm data...</p>
+                        <p class="text-sm text-gray-500 mt-2">This may take a few moments</p>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" class="bg-white rounded-xl shadow-lg p-12 text-center">
+                        <i class="fas fa-chart-bar text-gray-300 text-6xl mb-4"></i>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">No Prediction Yet</h3>
+                        <p class="text-gray-600 mb-6">Fill in the form to generate your yield prediction</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <i class="fas fa-brain text-green-600 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-700 font-medium">AI-Powered Analysis</p>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <i class="fas fa-cloud-sun text-blue-600 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-700 font-medium">Weather Integration</p>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4">
+                                <i class="fas fa-chart-line text-purple-600 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-700 font-medium">Accurate Forecasts</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Display -->
+                    <div id="resultsDisplay" class="hidden space-y-6">
+                        <!-- Prediction Summary -->
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-lg p-6 border border-green-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                                <i class="fas fa-chart-pie mr-2 text-green-600"></i>Yield Prediction
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-white rounded-lg p-4 text-center">
+                                    <p class="text-sm text-gray-600 mb-1">Predicted Yield</p>
+                                    <p id="predictedYield" class="text-3xl font-bold text-green-600">--</p>
+                                    <p class="text-xs text-gray-500 mt-1">quintals/acre</p>
+                                </div>
+                                <div class="bg-white rounded-lg p-4 text-center">
+                                    <p class="text-sm text-gray-600 mb-1">Quality Grade</p>
+                                    <p id="qualityGrade" class="text-3xl font-bold text-blue-600">--</p>
+                                    <p class="text-xs text-gray-500 mt-1">expected quality</p>
+                                </div>
+                                <div class="bg-white rounded-lg p-4 text-center">
+                                    <p class="text-sm text-gray-600 mb-1">Harvest Date</p>
+                                    <p id="harvestDate" class="text-lg font-bold text-purple-600">--</p>
+                                    <p class="text-xs text-gray-500 mt-1">estimated</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Confidence Score -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                                <i class="fas fa-check-circle mr-2 text-green-600"></i>Confidence Score
+                            </h3>
+                            <div class="flex items-center mb-2">
+                                <div class="flex-1 bg-gray-200 rounded-full h-6 mr-4 overflow-hidden">
+                                    <div id="confidenceBar" class="bg-gradient-to-r from-green-500 to-emerald-600 h-6 rounded-full transition-all duration-1000 flex items-center justify-end pr-2" style="width: 0%; max-width: 100%;">
+                                        <span id="confidenceText" class="text-xs font-bold text-white">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Based on data completeness and weather stability
+                            </p>
+                        </div>
+
+                        <!-- Timeline Visualization -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                                <i class="fas fa-calendar-alt mr-2 text-blue-600"></i>Harvest Timeline
+                            </h3>
+                            <div id="timeline" class="relative">
+                                <!-- Timeline will be dynamically generated -->
+                            </div>
+                        </div>
+
+                        <!-- Preparation Checklist -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                                <i class="fas fa-tasks mr-2 text-orange-600"></i>Preparation Checklist
+                            </h3>
+                            <div id="checklist" class="space-y-2">
+                                <!-- Checklist items will be dynamically generated -->
+                            </div>
+                        </div>
+
+                        <!-- Regional Comparison -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                                <i class="fas fa-map-marked-alt mr-2 text-purple-600"></i>Regional Comparison
+                            </h3>
+                            <div id="regionalComparison" class="space-y-3">
+                                <!-- Comparison data will be dynamically generated -->
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button id="recordActualBtn" class="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg font-semibold">
+                                <i class="fas fa-clipboard-check mr-2"></i>Record Actual Yield
+                            </button>
+                            <button id="newPredictionBtn" class="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white py-3 rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg font-semibold">
+                                <i class="fas fa-plus mr-2"></i>New Prediction
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Record Actual Yield Modal -->
+    <div id="actualYieldModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-clipboard-check mr-2 text-blue-600"></i>
+                    Record Actual Yield
+                </h3>
+                <button id="closeActualModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form id="actualYieldForm" class="space-y-4">
+                <input type="hidden" id="predictionId">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Actual Yield (quintals/acre)</label>
+                    <input type="number" id="actualYield" step="0.1" min="0" required placeholder="e.g., 25.5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Actual Quality</label>
+                    <select id="actualQuality" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select quality...</option>
+                        <option value="A">Grade A (Excellent)</option>
+                        <option value="B">Grade B (Good)</option>
+                        <option value="C">Grade C (Average)</option>
+                        <option value="D">Grade D (Below Average)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                    <textarea id="yieldNotes" rows="3" placeholder="Any observations or factors that affected yield..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                        Recording actual yield helps improve future predictions.
+                    </p>
+                </div>
+
+                <div class="flex space-x-3 pt-4">
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg font-semibold">
+                        <i class="fas fa-save mr-2"></i>Save
+                    </button>
+                    <button type="button" id="cancelActualModal" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-semibold">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/yield-prediction.js') }}"></script>
+</body>
+</html>

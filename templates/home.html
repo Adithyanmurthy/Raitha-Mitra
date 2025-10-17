@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Raitha Mitra - Smart Farming Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/main.css') }}"
+    />
+  </head>
+  <body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <!-- Logo and Brand -->
+          <div class="flex items-center">
+            <!-- Mobile menu button -->
+            <button
+              id="mobileMenuBtn"
+              class="md:hidden mr-3 text-gray-700 hover:text-green-600"
+            >
+              <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="flex-shrink-0 flex items-center">
+              <i class="fas fa-seedling text-green-600 text-2xl mr-2"></i>
+              <span class="text-xl font-bold text-gray-800">Raitha Mitra</span>
+            </div>
+          </div>
+
+          <!-- Navigation Links (Desktop) -->
+          <div class="hidden md:flex items-center space-x-6">
+            <a
+              href="#features"
+              class="text-gray-700 hover:text-green-600 font-medium text-sm"
+              >Features</a
+            >
+            <a
+              href="/chat"
+              class="text-gray-700 hover:text-green-600 font-medium text-sm whitespace-nowrap"
+              >Chat Assistant</a
+            >
+            <a
+              href="/farm-planner"
+              class="text-gray-700 hover:text-green-600 font-medium text-sm whitespace-nowrap"
+              >Farm Planner</a
+            >
+            <a
+              href="/yield-prediction"
+              class="text-gray-700 hover:text-green-600 font-medium text-sm whitespace-nowrap"
+              >Yield Prediction</a
+            >
+            <a
+              href="/financial-health"
+              class="text-gray-700 hover:text-green-600 font-medium text-sm whitespace-nowrap"
+              >Financial Health</a
+            >
+            <div class="relative group">
+              <button
+                class="text-gray-700 hover:text-green-600 font-medium text-sm flex items-center"
+              >
+                Community
+                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+              </button>
+              <div
+                class="hidden group-hover:block absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+              >
+                <a
+                  href="/messages"
+                  class="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <i class="fas fa-envelope mr-2"></i>Messages
+                  <span
+                    id="navMessageCount"
+                    class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 hidden"
+                  ></span>
+                </a>
+                <a
+                  href="/friends"
+                  class="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <i class="fas fa-user-friends mr-2"></i>Friends
+                  <span
+                    id="navFriendRequestCount"
+                    class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 hidden"
+                  ></span>
+                </a>
+                <a
+                  href="/community-map"
+                  class="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <i class="fas fa-map-marked-alt mr-2"></i>Community Map
+                </a>
+              </div>
+            </div>
+            <a
+              href="#about"
+              class="text-gray-700 hover:text-green-600 font-medium text-sm"
+              >About</a
+            >
+            <a
+              href="#contact"
+              class="text-gray-700 hover:text-green-600 font-medium text-sm"
+              >Contact</a
+            >
+          </div>
+
+          <!-- Auth Buttons -->
+          <div class="flex items-center space-x-3">
+            <!-- Show when not logged in -->
+            <div id="authButtons" class="flex items-center space-x-3">
+              <button
+                id="loginBtn"
+                class="text-green-600 hover:text-green-700 font-medium text-sm"
+              >
+                Login
+              </button>
+              <button
+                id="registerBtn"
+                class="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg text-sm"
+              >
+                Register
+              </button>
+            </div>
+
+            <!-- Show when logged in -->
+            <div id="userMenu" class="hidden flex items-center space-x-3">
+              <span
+                id="userGreeting"
+                class="text-gray-700 font-medium text-sm hidden md:inline"
+              ></span>
+              <div class="relative">
+                <button
+                  id="profileBtn"
+                  class="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-3 py-2 rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg text-sm"
+                >
+                  <i class="fas fa-user"></i>
+                  <span class="hidden sm:inline">Profile</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div
+                  id="profileDropdown"
+                  class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border-2 border-green-500"
+                  style="z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.3); top: 100%; margin-top: 0.5rem;"
+                >
+                  <div class="py-2">
+                    <button
+                      id="viewProfileBtn"
+                      class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
+                    >
+                      <i class="fas fa-user-circle mr-2"></i>View Profile
+                    </button>
+                    <button
+                      id="changePasswordBtn"
+                      class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
+                    >
+                      <i class="fas fa-key mr-2"></i>Change Password
+                    </button>
+                    <button
+                      id="predictionHistoryBtn"
+                      class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
+                    >
+                      <i class="fas fa-history mr-2"></i>Past Activities
+                    </button>
+                    <hr class="my-2" />
+                    <button
+                      id="logoutBtn"
+                      class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 flex items-center"
+                    >
+                      <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        id="mobileMenu"
+        class="hidden md:hidden bg-white border-t border-gray-200"
+      >
+        <div class="px-4 py-2 space-y-1">
+          <a
+            href="#home"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+            >Home</a
+          >
+          <a
+            href="#features"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+            >Features</a
+          >
+          <a
+            href="/chat"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+          >
+            <i class="fas fa-comments mr-2"></i>Chat Assistant
+          </a>
+          <a
+            href="/farm-planner"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+          >
+            <i class="fas fa-calendar-alt mr-2"></i>Farm Planner
+          </a>
+          <a
+            href="/yield-prediction"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+          >
+            <i class="fas fa-chart-line mr-2"></i>Yield Prediction
+          </a>
+          <a
+            href="/financial-health"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+          >
+            <i class="fas fa-dollar-sign mr-2"></i>Financial Health
+          </a>
+          <div class="border-t border-gray-200 my-2"></div>
+          <div class="px-3 py-2 text-gray-500 text-sm font-semibold">
+            Community
+          </div>
+          <a
+            href="/messages"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
+          >
+            <i class="fas fa-envelope mr-2"></i>Messages
+            <span
+              id="mobileMessageCount"
+              class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 hidden"
+            ></span>
+          </a>
+          <a
+            href="/friends"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
+          >
+            <i class="fas fa-user-friends mr-2"></i>Friends
+            <span
+              id="mobileFriendRequestCount"
+              class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 hidden"
+            ></span>
+          </a>
+          <a
+            href="/community-map"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+          >
+            <i class="fas fa-map-marked-alt mr-2"></i>Community Map
+          </a>
+          <div class="border-t border-gray-200 my-2"></div>
+          <a
+            href="#about"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+            >About</a
+          >
+          <a
+            href="#contact"
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+            >Contact</a
+          >
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section with Video Background -->
+    <section
+      id="home"
+      class="relative pt-16 pb-20 min-h-screen flex items-center overflow-hidden"
+    >
+      <!-- Dynamic Background -->
+      <div class="absolute inset-0 w-full h-full">
+        <!-- Animated Background Images -->
+        <div
+          class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000"
+          id="heroBackground"
+          style="
+            background-image: url('https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1920&h=1080&fit=crop&crop=center');
+          "
+        ></div>
+
+        <!-- Video Background (if available) -->
+        <video
+          id="heroVideo"
+          class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000"
+          autoplay
+          muted
+          loop
+          playsinline
+          style="display: none"
+        >
+          <!-- Try to load a farming video -->
+          <source
+            src="https://cdn.coverr.co/videos/coverr-farmer-walking-through-crop-field-4754/1080p.mp4"
+            type="video/mp4"
+          />
+          <source
+            src="https://cdn.coverr.co/videos/coverr-aerial-view-of-green-farmland-4755/1080p.mp4"
+            type="video/mp4"
+          />
+        </video>
+
+        <!-- Animated Particles -->
+        <div class="absolute inset-0 overflow-hidden">
+          <div class="floating-particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+          </div>
+        </div>
+
+        <!-- Overlay for better text readability -->
+        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-green-900/60 via-transparent to-blue-900/60"
+        ></div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+        <div class="text-center">
+          <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 hero-text">
+            Smart Farming with <span class="text-green-200">AI Technology</span>
+          </h1>
+          <p class="text-xl text-green-100 mb-8 max-w-3xl mx-auto hero-text">
+            Detect crop diseases instantly, get expert treatment advice, and
+            access real-time market prices. Empowering farmers with cutting-edge
+            AI solutions.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              id="diseaseDetectionBtn"
+              class="hero-button bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:from-emerald-600 hover:to-green-700 hover:shadow-xl"
+            >
+              <i class="fas fa-camera mr-2"></i>
+              Start Disease Detection
+            </button>
+            <button
+              id="watchDemoBtn"
+              class="hero-button bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:from-blue-600 hover:to-indigo-700 hover:shadow-xl"
+            >
+              <i class="fas fa-play mr-2"></i>
+              Watch Demo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll Indicator -->
+      <div
+        class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce"
+      >
+        <i class="fas fa-chevron-down text-2xl"></i>
+      </div>
+    </section>
+
+    <!-- Weather Widget Section -->
+    <section
+      class="py-8 bg-gradient-to-r from-blue-50 to-green-50 border-b border-gray-200"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <div class="flex flex-col lg:flex-row items-center justify-between">
+            <!-- Current Weather -->
+            <div class="flex items-center space-x-6 mb-4 lg:mb-0">
+              <div class="text-center">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                  Current Weather
+                </h3>
+                <div id="weatherWidget" class="flex items-center space-x-4">
+                  <!-- Weather Icon -->
+                  <div class="flex-shrink-0">
+                    <img
+                      id="weatherIcon"
+                      src="https://openweathermap.org/img/wn/02d@2x.png"
+                      alt="Weather"
+                      class="w-16 h-16"
+                      onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%234A90E2%22 stroke-width=%222%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%225%22/%3E%3Cpath d=%22M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42%22/%3E%3C/svg%3E'"
+                    />
+                  </div>
+
+                  <!-- Weather Info -->
+                  <div class="text-left">
+                    <div class="flex items-center space-x-2">
+                      <span
+                        id="weatherTemp"
+                        class="text-3xl font-bold text-gray-800"
+                        >--°C</span
+                      >
+                      <div class="text-sm text-gray-600">
+                        <div id="weatherLocation" class="font-medium">
+                          Loading...
+                        </div>
+                        <div id="weatherDescription" class="capitalize">--</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Weather Details -->
+              <div class="hidden md:block border-l border-gray-200 pl-6">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <span class="text-gray-600">Feels like</span>
+                    <span id="weatherFeelsLike" class="font-medium">--°C</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <i class="fas fa-tint text-blue-500"></i>
+                    <span class="text-gray-600">Humidity</span>
+                    <span id="weatherHumidity" class="font-medium">--%</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <i class="fas fa-wind text-blue-500"></i>
+                    <span class="text-gray-600">Wind</span>
+                    <span id="weatherWind" class="font-medium">-- km/h</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <i class="fas fa-thermometer-half text-blue-500"></i>
+                    <span class="text-gray-600">Pressure</span>
+                    <span id="weatherPressure" class="font-medium">-- hPa</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weather Forecast -->
+            <div class="flex-1 max-w-md">
+              <h4 class="text-sm font-medium text-gray-700 mb-3 text-center">
+                5-Day Forecast
+              </h4>
+              <div id="weatherForecast" class="flex justify-between space-x-2">
+                <!-- Forecast items will be populated by JavaScript -->
+                <div
+                  class="forecast-item text-center p-2 rounded-lg bg-gray-50 flex-1"
+                >
+                  <div class="text-xs text-gray-600 mb-1">Loading...</div>
+                  <img src="" alt="" class="w-8 h-8 mx-auto mb-1" />
+                  <div class="text-xs font-medium text-gray-800">--°</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Location Button -->
+            <div class="mt-4 lg:mt-0">
+              <button
+                id="getLocationBtn"
+                class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg text-sm"
+              >
+                <i class="fas fa-map-marker-alt mr-2"></i>
+                Use My Location
+              </button>
+            </div>
+          </div>
+
+          <!-- Weather Status -->
+          <div
+            id="weatherStatus"
+            class="mt-4 text-center text-sm text-gray-500 hidden"
+          >
+            <i class="fas fa-info-circle mr-1"></i>
+            <span id="weatherStatusText">Loading weather data...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Comprehensive Farming Solutions
+          </h2>
+          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            From disease detection to market insights, we provide everything you
+            need for successful farming
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Disease Detection -->
+          <div class="feature-card bg-gray-50 rounded-xl p-8 text-center">
+            <div
+              class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <i class="fas fa-microscope text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              AI Disease Detection
+            </h3>
+            <p class="text-gray-600">
+              Instantly identify crop diseases using advanced AI technology with
+              95% accuracy
+            </p>
+          </div>
+
+          <!-- AI Chat Assistant -->
+          <div class="feature-card bg-gray-50 rounded-xl p-8 text-center">
+            <div
+              class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <i class="fas fa-comments text-blue-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              AI Chat Assistant
+            </h3>
+            <p class="text-gray-600">
+              Get instant answers to farming questions in 10 Indian languages
+              with AI-powered chat
+            </p>
+          </div>
+
+          <!-- Yield Prediction -->
+          <div class="feature-card bg-gray-50 rounded-xl p-8 text-center">
+            <div
+              class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <i class="fas fa-chart-bar text-purple-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              Yield Prediction
+            </h3>
+            <p class="text-gray-600">
+              Predict your crop yield based on weather, soil, and farming
+              practices for better planning
+            </p>
+          </div>
+
+          <!-- Farm Planner -->
+          <div class="feature-card bg-gray-50 rounded-xl p-8 text-center">
+            <div
+              class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <i class="fas fa-calendar-alt text-orange-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              Smart Farm Planner
+            </h3>
+            <p class="text-gray-600">
+              Get personalized weekly schedules and task recommendations for
+              optimal farm management
+            </p>
+          </div>
+
+          <!-- Financial Health -->
+          <div class="feature-card bg-gray-50 rounded-xl p-8 text-center">
+            <div
+              class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <i class="fas fa-rupee-sign text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              Financial Health Tracker
+            </h3>
+            <p class="text-gray-600">
+              Track expenses, analyze costs, and project profits to manage your
+              farm finances effectively
+            </p>
+          </div>
+
+          <!-- Community Map -->
+          <div class="feature-card bg-gray-50 rounded-xl p-8 text-center">
+            <div
+              class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <i class="fas fa-map-marked-alt text-indigo-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              Farmer Community Map
+            </h3>
+            <p class="text-gray-600">
+              Connect with nearby farmers, share knowledge, and collaborate on
+              agricultural challenges
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              Empowering Farmers with Technology
+            </h2>
+            <p class="text-lg text-gray-600 mb-6">
+              Raitha Mitra is dedicated to revolutionizing agriculture through
+              artificial intelligence. We provide farmers with instant access to
+              expert knowledge, helping them make informed decisions and improve
+              their crop yields.
+            </p>
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <i class="fas fa-check-circle text-green-600 mr-3"></i>
+                <span class="text-gray-700"
+                  >95% accuracy in disease detection</span
+                >
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-check-circle text-green-600 mr-3"></i>
+                <span class="text-gray-700">Support for 38+ crop diseases</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-check-circle text-green-600 mr-3"></i>
+                <span class="text-gray-700">Multi-language support</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-check-circle text-green-600 mr-3"></i>
+                <span class="text-gray-700">Real-time market data</span>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <img
+              src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=300&h=200&fit=crop"
+              alt="Farmer with crops"
+              class="rounded-lg shadow-lg"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=300&h=200&fit=crop"
+              alt="Modern farming"
+              class="rounded-lg shadow-lg mt-8"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=300&h=200&fit=crop"
+              alt="Crop field"
+              class="rounded-lg shadow-lg -mt-8"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=300&h=200&fit=crop"
+              alt="Agricultural technology"
+              class="rounded-lg shadow-lg"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+          Ready to Transform Your Farming?
+        </h2>
+        <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          Join thousands of farmers who are already using Raitha Mitra to
+          improve their crop yields and income
+        </p>
+        <button
+          id="getStartedBtn"
+          class="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+        >
+          Get Started Today
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div>
+            <div class="flex items-center mb-4">
+              <i class="fas fa-seedling text-green-500 text-2xl mr-2"></i>
+              <span class="text-xl font-bold text-white">Raitha Mitra</span>
+            </div>
+            <p class="text-gray-400">
+              Empowering farmers with AI-driven solutions for better crop
+              management and higher yields.
+            </p>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold mb-4">Quick Links</h3>
+            <ul class="space-y-2">
+              <li>
+                <a href="#home" class="text-gray-400 hover:text-white">Home</a>
+              </li>
+              <li>
+                <a href="#features" class="text-gray-400 hover:text-white"
+                  >Features</a
+                >
+              </li>
+              <li>
+                <a href="#about" class="text-gray-400 hover:text-white"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a href="#contact" class="text-gray-400 hover:text-white"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold mb-4">Services</h3>
+            <ul class="space-y-2">
+              <li>
+                <a href="#" class="text-gray-400 hover:text-white"
+                  >Disease Detection</a
+                >
+              </li>
+              <li>
+                <a href="#" class="text-gray-400 hover:text-white"
+                  >Market Prices</a
+                >
+              </li>
+              <li>
+                <a href="#" class="text-gray-400 hover:text-white"
+                  >Expert Advice</a
+                >
+              </li>
+              <li>
+                <a href="#" class="text-gray-400 hover:text-white"
+                  >Equipment Rental</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold mb-4">Contact Info</h3>
+            <div class="space-y-2">
+              <p class="text-gray-400">
+                <i class="fas fa-phone mr-2"></i>+91 98765 43210
+              </p>
+              <p class="text-gray-400">
+                <i class="fas fa-envelope mr-2"></i>info@raithamitra.com
+              </p>
+              <p class="text-gray-400">
+                <i class="fas fa-map-marker-alt mr-2"></i>Bengaluru, Karnataka
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+          <p class="text-gray-400">
+            &copy; 2025 Raitha Mitra. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/weather.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+  </body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends Network - Raitha Mitra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4 px-6">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <button id="backBtn" class="text-gray-600 hover:text-green-600 transition">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-users text-green-600 text-2xl"></i>
+                    <h1 class="text-xl font-bold text-gray-800">Friends Network</h1>
+                    <span id="friendRequestBadge" class="hidden bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">0</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="searchFarmersBtn" class="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg hidden md:inline-flex items-center">
+                    <i class="fas fa-search mr-2"></i>Find Farmers
+                </button>
+                <span id="userWelcome" class="text-sm text-gray-600 hidden md:inline"></span>
+                <div class="relative">
+                    <button id="profileBtn" class="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-3 py-2 rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg text-sm">
+                        <i class="fas fa-user"></i>
+                        <span class="hidden sm:inline">Profile</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        <div class="py-2">
+                            <button id="viewProfileBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="fas fa-user-circle mr-2"></i>View Profile
+                            </button>
+                            <button id="changePasswordBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="fas fa-key mr-2"></i>Change Password
+                            </button>
+                            <button id="predictionHistoryBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="fas fa-history mr-2"></i>Past Activities
+                            </button>
+                            <hr class="my-2">
+                            <button id="logoutBtn" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 flex items-center">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-6">
+        <div class="max-w-7xl mx-auto">
+            <!-- Friend Requests Section -->
+            <div id="requestsSection" class="hidden bg-gradient-to-br from-orange-50 to-red-50 rounded-xl shadow-lg p-6 mb-6 border border-orange-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">
+                        <i class="fas fa-user-plus mr-2 text-orange-600"></i>Friend Requests
+                        <span id="requestCount" class="text-sm text-orange-600 ml-2">(0)</span>
+                    </h3>
+                    <button id="toggleRequests" class="text-sm text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+                
+                <div id="requestsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Friend requests will be dynamically loaded -->
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-xl shadow-lg mb-6">
+                <div class="flex border-b border-gray-200">
+                    <button id="friendsTab" class="flex-1 py-4 px-6 text-center font-semibold text-green-600 border-b-2 border-green-600 transition">
+                        <i class="fas fa-user-friends mr-2"></i>My Friends
+                        <span id="friendsCount" class="text-sm ml-1">(0)</span>
+                    </button>
+                    <button id="suggestionsTab" class="flex-1 py-4 px-6 text-center font-semibold text-gray-600 hover:text-green-600 transition">
+                        <i class="fas fa-lightbulb mr-2"></i>Suggestions
+                    </button>
+                </div>
+            </div>
+
+            <!-- Friends List -->
+            <div id="friendsContent" class="space-y-6">
+                <!-- Search Bar -->
+                <div class="bg-white rounded-xl shadow-lg p-4">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="friendsSearchInput" 
+                            placeholder="Search your friends..." 
+                            class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        >
+                        <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- Friends Grid -->
+                <div id="friendsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Friends will be dynamically loaded -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="friendsEmpty" class="hidden bg-white rounded-xl shadow-lg p-12 text-center">
+                    <i class="fas fa-user-friends text-gray-300 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">No Friends Yet</h3>
+                    <p class="text-gray-600 mb-6">Start connecting with other farmers in your region</p>
+                    <button class="search-farmers-trigger bg-gradient-to-r from-emerald-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg font-semibold">
+                        <i class="fas fa-search mr-2"></i>Find Farmers
+                    </button>
+                </div>
+            </div>
+
+            <!-- Suggestions Content -->
+            <div id="suggestionsContent" class="hidden space-y-6">
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-lg p-6 border border-purple-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">
+                        <i class="fas fa-magic mr-2 text-purple-600"></i>Suggested Connections
+                    </h3>
+                    <p class="text-sm text-gray-600">Based on your location, crops, and mutual connections</p>
+                </div>
+
+                <!-- Suggestions Grid -->
+                <div id="suggestionsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Suggestions will be dynamically loaded -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="suggestionsEmpty" class="hidden bg-white rounded-xl shadow-lg p-12 text-center">
+                    <i class="fas fa-lightbulb text-gray-300 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">No Suggestions Available</h3>
+                    <p class="text-gray-600">Check back later for new connection suggestions</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Friend Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-user-circle mr-2 text-green-600"></i>
+                    Farmer Profile
+                </h3>
+                <button id="closeProfileModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="text-center mb-6">
+                <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user text-green-600 text-4xl"></i>
+                </div>
+                <h4 id="profileName" class="text-2xl font-bold text-gray-800 mb-1">--</h4>
+                <p id="profileLocation" class="text-gray-600 mb-4">
+                    <i class="fas fa-map-marker-alt mr-1"></i>--
+                </p>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-600 mb-1">Primary Crops</p>
+                    <p id="profileCrops" class="font-semibold text-gray-800">--</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-600 mb-1">Member Since</p>
+                    <p id="profileJoined" class="font-semibold text-gray-800">--</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-600 mb-1">Mutual Friends</p>
+                    <p id="profileMutual" class="font-semibold text-gray-800">--</p>
+                </div>
+            </div>
+
+            <div id="profileActions" class="space-y-3">
+                <!-- Actions will be dynamically generated based on relationship -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Farmers Modal -->
+    <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-search mr-2 text-green-600"></i>
+                    Find Farmers
+                </h3>
+                <button id="closeSearchModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <div class="relative mb-4">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search by name, location, or crop type..." 
+                        class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                    <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-3">
+                    <select id="locationFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                        <option value="">All Locations</option>
+                        <option value="karnataka">Karnataka</option>
+                        <option value="maharashtra">Maharashtra</option>
+                        <option value="punjab">Punjab</option>
+                        <option value="tamil_nadu">Tamil Nadu</option>
+                        <option value="uttar_pradesh">Uttar Pradesh</option>
+                    </select>
+                    <select id="cropFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                        <option value="">All Crops</option>
+                        <option value="rice">Rice</option>
+                        <option value="wheat">Wheat</option>
+                        <option value="cotton">Cotton</option>
+                        <option value="sugarcane">Sugarcane</option>
+                        <option value="vegetables">Vegetables</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="searchResults" class="space-y-3 max-h-96 overflow-y-auto">
+                <!-- Search results will be dynamically loaded -->
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-users text-4xl mb-2"></i>
+                    <p>Search for farmers to connect with</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove Friend Confirmation Modal -->
+    <div id="removeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user-times text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Remove Friend?</h3>
+                <p class="text-gray-600">
+                    Are you sure you want to remove <span id="removeFriendName" class="font-semibold">this farmer</span> from your friends list?
+                </p>
+            </div>
+
+            <div class="flex space-x-3">
+                <button id="confirmRemoveBtn" class="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition font-semibold">
+                    <i class="fas fa-user-times mr-2"></i>Remove Friend
+                </button>
+                <button id="cancelRemoveBtn" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-semibold">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/friends.js') }}"></script>
+</body>
+</html>
