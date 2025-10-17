@@ -2940,6 +2940,11 @@ if __name__ == '__main__':
     print("   Mobile: 9876543210")
     print("   Password: 123456")
     
-    # Use port 5001 to avoid conflict with macOS AirPlay Receiver on port 5000
-app.run(debug=os.getenv('FLASK_DEBUG', 'True').lower() == 'true',
-        host='127.0.0.1', port=int(os.getenv('PORT', 0)))
+    # Get port from environment variable (for Render) or use 5001 for local
+    port = int(os.getenv('PORT', 5001))
+    # Get host from environment variable (0.0.0.0 for production, 127.0.0.1 for local)
+    host = os.getenv('HOST', '127.0.0.1')
+    # Debug mode from environment variable (False for production)
+    debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+    
+    app.run(debug=debug, host=host, port=port)

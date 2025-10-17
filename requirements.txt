@@ -22,6 +22,9 @@ requests==2.32.3
 # Database (SQLite is built into Python)
 # No additional packages needed for SQLite
 
+# Production Server
+gunicorn==21.2.0
+
 # Note: All advanced features (Chat, Farm Planner, Yield Prediction, 
 # Financial Health, Community Network, Map) use the above dependencies.
 # No additional packages are required.

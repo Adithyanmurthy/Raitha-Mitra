@@ -42,10 +42,10 @@ ENV/
 app.log
 nohup.out
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Database (commented out - we need the database for Render)
+# *.db
+# *.sqlite
+# *.sqlite3
 
 # Environment variables
 .env
