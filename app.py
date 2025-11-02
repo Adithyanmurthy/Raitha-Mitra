@@ -53,12 +53,28 @@ db = DatabaseManager()
 def health_check():
     """Health check endpoint for monitoring"""
     try:
-        return jsonify({
+        health_status = {
             'status': 'healthy',
             'model_loaded': model is not None,
+            'model_classes': len(class_names) if class_names else 0,
             'database': 'connected',
-            'gemini_configured': gemini_text_model is not None
-        }), 200
+            'gemini_configured': gemini_text_model is not None,
+            'model_path_exists': os.path.exists(MODEL_PATH),
+            'classes_path_exists': os.path.exists(CLASSES_PATH)
+        }
+        
+        # Test model if loaded
+        if model is not None:
+            try:
+                # Create a dummy input to test model
+                test_input = np.zeros((1, 128, 128, 3))
+                test_pred = model.predict(test_input, verbose=0)
+                health_status['model_test'] = 'passed'
+            except Exception as model_error:
+                health_status['model_test'] = f'failed: {str(model_error)}'
+                health_status['status'] = 'degraded'
+        
+        return jsonify(health_status), 200
     except Exception as e:
         return jsonify({
             'status': 'unhealthy',
@@ -176,14 +192,24 @@ class_names = []
 
 if os.path.exists(MODEL_PATH) and os.path.exists(CLASSES_PATH):
     try:
-        model = tf.keras.models.load_model(MODEL_PATH)
+        print(f"📦 Loading model from: {MODEL_PATH}")
+        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         with open(CLASSES_PATH, 'r') as f:
             class_names = json.load(f)
-        print("✅ Local disease detection model loaded.")
+        print(f"✅ Local disease detection model loaded successfully with {len(class_names)} classes.")
+        print(f"🧠 Model input shape: {model.input_shape}")
     except Exception as e:
         print(f"❌ Error loading local model: {e}")
+        import traceback
+        traceback.print_exc()
+        model = None
 else:
-    print("❌ Error: Local model or class names file not found. Please run `crop_disease_model.py`.")
+    print(f"❌ Error: Local model or class names file not found.")
+    print(f"   MODEL_PATH exists: {os.path.exists(MODEL_PATH)}")
+    print(f"   CLASSES_PATH exists: {os.path.exists(CLASSES_PATH)}")
+    print(f"   Current directory: {os.getcwd()}")
+    print(f"   Files in directory: {os.listdir('.')[:10]}")
 
 # --- 5. Yield Impact Database ---
 yield_impact_db = {
@@ -1281,19 +1307,28 @@ def predict():
         target_language = data.get('language', 'en')  # Default to English
         
         print(f"🔬 Starting prediction for user: {user_id}")
+        print(f"📝 Target language: {target_language}")
         
-        # Process image
-        processed_image = preprocess_image(data['image'])
-        print(f"📸 Image processed, shape: {processed_image.shape}")
+        # Process image with error handling
+        try:
+            processed_image = preprocess_image(data['image'])
+            print(f"📸 Image processed, shape: {processed_image.shape}")
+        except Exception as img_error:
+            print(f"❌ Image processing error: {img_error}")
+            return jsonify({'error': 'Failed to process image. Please try again with a different image.'}), 400
         
-        # Make prediction
-        prediction = model.predict(processed_image)
-        predicted_class_index = np.argmax(prediction[0])
-        confidence = float(prediction[0][predicted_class_index])
-        predicted_class_name = class_names[predicted_class_index]
-        formatted_disease_name = predicted_class_name.replace("___", " - ").replace("_", " ")
-        
-        print(f"🎯 Prediction: {formatted_disease_name} (confidence: {confidence:.2f})")
+        # Make prediction with error handling
+        try:
+            prediction = model.predict(processed_image, verbose=0)
+            predicted_class_index = np.argmax(prediction[0])
+            confidence = float(prediction[0][predicted_class_index])
+            predicted_class_name = class_names[predicted_class_index]
+            formatted_disease_name = predicted_class_name.replace("___", " - ").replace("_", " ")
+            
+            print(f"🎯 Prediction: {formatted_disease_name} (confidence: {confidence:.2f})")
+        except Exception as pred_error:
+            print(f"❌ Model prediction error: {pred_error}")
+            return jsonify({'error': 'Failed to analyze image. Please try again.'}), 500
 
         yield_impact = yield_impact_db.get(predicted_class_name, yield_impact_db['default'])
         
@@ -1302,30 +1337,37 @@ def predict():
         
         # Get treatment details and market prices in the selected language
         print(f"🤖 Getting treatment details from Gemini AI in {target_language}...")
-        treatment_details = get_gemini_treatment_details(formatted_disease_name, target_language)
+        try:
+            treatment_details = get_gemini_treatment_details(formatted_disease_name, target_language)
+            if treatment_details is None:
+                print(f"⚠️ Gemini returned None, using fallback")
+                treatment_details = get_default_treatment_details(formatted_disease_name, target_language)
+        except Exception as treatment_error:
+            print(f"❌ Treatment details error: {treatment_error}")
+            treatment_details = get_default_treatment_details(formatted_disease_name, target_language)
         
         print(f"💰 Getting market prices for {crop_name} in {target_language}...")
-        if "healthy" not in predicted_class_name:
-            market_prices = get_market_prices(crop_name, target_language)
-        else:
-            # Healthy plant message in different languages
-            healthy_messages = {
-                'en': "Plant is healthy, no market rates needed.",
-                'hi': "पौधा स्वस्थ है, बाजार दर की आवश्यकता नहीं।",
-                'kn': "ಸಸ್ಯ ಆರೋಗ್ಯಕರವಾಗಿರುವುದರಿಂದ ಮಾರುಕಟ್ಟೆ ದರ ಅಗತ್ಯವಿಲ್ಲ।",
-                'te': "మొక్క ఆరోగ్యంగా ఉంది, మార్కెట్ రేట్లు అవసరం లేదు।",
-                'ta': "செடி ஆரோக்கியமாக உள்ளது, சந்தை விலைகள் தேவையில்லை।",
-                'ml': "ചെടി ആരോഗ്യകരമാണ്, മാർക്കറ്റ് നിരക്കുകൾ ആവശ്യമില്ല।",
-                'mr': "रोप निरोगी आहे, बाजार दर आवश्यक नाही।",
-                'gu': "છોડ સ્વસ્થ છે, બજાર દરોની જરૂર નથી।",
-                'bn': "গাছ সুস্থ, বাজার দরের প্রয়োজন নেই।",
-                'pa': "ਪੌਧਾ ਸਿਹਤਮੰਦ ਹੈ, ਮਾਰਕੀਟ ਰੇਟ ਦੀ ਲੋੜ ਨਹੀਂ।"
-            }
-            market_prices = healthy_messages.get(target_language, healthy_messages['en'])
-
-        if treatment_details is None: 
-            print(f"❌ Failed to get treatment details from Gemini AI")
-            return jsonify({'error': 'Failed to get details from Gemini AI.'}), 503
+        try:
+            if "healthy" not in predicted_class_name:
+                market_prices = get_market_prices(crop_name, target_language)
+            else:
+                # Healthy plant message in different languages
+                healthy_messages = {
+                    'en': "Plant is healthy, no market rates needed.",
+                    'hi': "पौधा स्वस्थ है, बाजार दर की आवश्यकता नहीं।",
+                    'kn': "ಸಸ್ಯ ಆರೋಗ್ಯಕರವಾಗಿರುವುದರಿಂದ ಮಾರುಕಟ್ಟೆ ದರ ಅಗತ್ಯವಿಲ್ಲ।",
+                    'te': "మొక్క ఆరోగ్యంగా ఉంది, మార్కెట్ రేట్లు అవసరం లేదు।",
+                    'ta': "செடி ஆரோக்கியமாக உள்ளது, சந்தை விலைகள் தேவையில்லை।",
+                    'ml': "ചെടി ആരോഗ്യകരമാണ്, മാർക്കറ്റ് നിരക്കുകൾ ആവശ്യമില്ല।",
+                    'mr': "रोप निरोगी आहे, बाजार दर आवश्यक नाही।",
+                    'gu': "છોડ સ્વસ્થ છે, બજાર દરોની જરૂર નથી।",
+                    'bn': "গাছ সুস্থ, বাজার দরের প্রয়োজন নেই।",
+                    'pa': "ਪੌਧਾ ਸਿਹਤਮੰਦ ਹੈ, ਮਾਰਕੀਟ ਰੇਟ ਦੀ ਲੋੜ ਨਹੀਂ।"
+                }
+                market_prices = healthy_messages.get(target_language, healthy_messages['en'])
+        except Exception as market_error:
+            print(f"❌ Market prices error: {market_error}")
+            market_prices = get_default_market_prices(crop_name, target_language)
 
         # Save the uploaded image
         image_path = None
@@ -2959,7 +3001,7 @@ if __name__ == '__main__':
     print("   Password: 123456")
     
     # Get port from environment variable (for Render) or use 5001 for local
-    port = int(os.getenv('PORT', 5001))
+    port = int(os.getenv('PORT', 5002))
     # Get host from environment variable (0.0.0.0 for production, 127.0.0.1 for local)
     host = os.getenv('HOST', '127.0.0.1')
     # Debug mode from environment variable (False for production)
