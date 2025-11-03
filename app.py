@@ -3,7 +3,7 @@ import json
 import base64
 import io
 import re
-import os
+import traceback
 from datetime import datetime, timedelta
 import google.generativeai as genai
 from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
@@ -100,6 +100,38 @@ def register_page():
 @app.route('/disease-detection')
 def disease_detection():
     return render_template('index.html')
+
+@app.route('/api/test-model')
+def test_model():
+    """Simple endpoint to test if model is working"""
+    try:
+        if model is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'Model not loaded',
+                'model_path_exists': os.path.exists(MODEL_PATH),
+                'classes_path_exists': os.path.exists(CLASSES_PATH)
+            }), 500
+        
+        # Create a simple test image
+        test_image = np.random.rand(1, 128, 128, 3).astype(np.float32)
+        
+        # Try prediction
+        prediction = model.predict(test_image, verbose=0)
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Model is working',
+            'num_classes': len(class_names),
+            'prediction_shape': prediction.shape,
+            'sample_classes': class_names[:5]
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
 
 # --- Weather API Routes ---
 @app.route('/api/weather')
@@ -706,11 +738,36 @@ def get_default_treatment_details(disease_name, target_language='en'):
 
 # --- 8. Image Preprocessing ---
 def preprocess_image(image_data, target_size=(128, 128)):
-    image_bytes = base64.b64decode(image_data.split(',')[1])
-    img = Image.open(io.BytesIO(image_bytes)).convert('RGB')
-    img = img.resize(target_size)
-    img_array = np.array(img) / 255.0
-    return np.expand_dims(img_array, axis=0)
+    """Preprocess image for model prediction with memory optimization"""
+    try:
+        # Handle data URL format
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]
+        
+        # Decode base64 with error handling
+        image_bytes = base64.b64decode(image_data)
+        
+        # Open and process image
+        img = Image.open(io.BytesIO(image_bytes))
+        
+        # Convert to RGB if needed
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # Resize to target size
+        img = img.resize(target_size, Image.LANCZOS)
+        
+        # Convert to numpy array and normalize
+        img_array = np.array(img, dtype=np.float32) / 255.0
+        
+        # Clean up
+        img.close()
+        
+        # Add batch dimension
+        return np.expand_dims(img_array, axis=0)
+    except Exception as e:
+        print(f"❌ Image preprocessing error: {e}")
+        raise ValueError(f"Failed to preprocess image: {str(e)}")
 
 # --- 9. Authentication Endpoints ---
 @app.route('/api/register', methods=['POST'])
