@@ -53,22 +53,35 @@ db = DatabaseManager()
 def health_check():
     """Health check endpoint for monitoring"""
     try:
+        model_loaded = (use_tflite and interpreter is not None) or (not use_tflite and model is not None)
+        
         health_status = {
             'status': 'healthy',
-            'model_loaded': model is not None,
+            'model_loaded': model_loaded,
+            'model_type': 'TFLite' if use_tflite else 'H5' if model is not None else 'None',
             'model_classes': len(class_names) if class_names else 0,
             'database': 'connected',
             'gemini_configured': gemini_text_model is not None,
-            'model_path_exists': os.path.exists(MODEL_PATH),
+            'tflite_exists': os.path.exists(TFLITE_MODEL_PATH),
+            'h5_exists': os.path.exists(H5_MODEL_PATH),
             'classes_path_exists': os.path.exists(CLASSES_PATH)
         }
         
         # Test model if loaded
-        if model is not None:
+        if model_loaded:
             try:
                 # Create a dummy input to test model
-                test_input = np.zeros((1, 128, 128, 3))
-                test_pred = model.predict(test_input, verbose=0)
+                test_input = np.zeros((1, 128, 128, 3), dtype=np.float32)
+                
+                if use_tflite and interpreter is not None:
+                    input_details = interpreter.get_input_details()
+                    output_details = interpreter.get_output_details()
+                    interpreter.set_tensor(input_details[0]['index'], test_input)
+                    interpreter.invoke()
+                    test_pred = interpreter.get_tensor(output_details[0]['index'])
+                elif model is not None:
+                    test_pred = model.predict(test_input, verbose=0)
+                
                 health_status['model_test'] = 'passed'
             except Exception as model_error:
                 health_status['model_test'] = f'failed: {str(model_error)}'
@@ -105,11 +118,14 @@ def disease_detection():
 def test_model():
     """Simple endpoint to test if model is working"""
     try:
-        if model is None:
+        model_loaded = (use_tflite and interpreter is not None) or (not use_tflite and model is not None)
+        
+        if not model_loaded:
             return jsonify({
                 'status': 'error',
                 'message': 'Model not loaded',
-                'model_path_exists': os.path.exists(MODEL_PATH),
+                'tflite_exists': os.path.exists(TFLITE_MODEL_PATH),
+                'h5_exists': os.path.exists(H5_MODEL_PATH),
                 'classes_path_exists': os.path.exists(CLASSES_PATH)
             }), 500
         
@@ -117,13 +133,21 @@ def test_model():
         test_image = np.random.rand(1, 128, 128, 3).astype(np.float32)
         
         # Try prediction
-        prediction = model.predict(test_image, verbose=0)
+        if use_tflite and interpreter is not None:
+            input_details = interpreter.get_input_details()
+            output_details = interpreter.get_output_details()
+            interpreter.set_tensor(input_details[0]['index'], test_image)
+            interpreter.invoke()
+            prediction = interpreter.get_tensor(output_details[0]['index'])
+        elif model is not None:
+            prediction = model.predict(test_image, verbose=0)
         
         return jsonify({
             'status': 'success',
             'message': 'Model is working',
+            'model_type': 'TFLite' if use_tflite else 'H5',
             'num_classes': len(class_names),
-            'prediction_shape': prediction.shape,
+            'prediction_shape': list(prediction.shape),
             'sample_classes': class_names[:5]
         }), 200
     except Exception as e:
@@ -217,31 +241,69 @@ except Exception as e:
     gemini_search_model = None
 
 # --- 4. Load the Local TensorFlow Model ---
-MODEL_PATH = 'crop_disease_detection_model.h5'
+# Try TFLite model first (smaller, faster), fallback to H5
+TFLITE_MODEL_PATH = 'crop_disease_detection_model.tflite'
+H5_MODEL_PATH = 'crop_disease_detection_model.h5'
 CLASSES_PATH = 'class_names.json'
-model = None
-class_names = []
 
-if os.path.exists(MODEL_PATH) and os.path.exists(CLASSES_PATH):
+model = None
+interpreter = None
+class_names = []
+use_tflite = False
+
+# Load class names first
+if os.path.exists(CLASSES_PATH):
     try:
-        print(f"📦 Loading model from: {MODEL_PATH}")
-        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         with open(CLASSES_PATH, 'r') as f:
             class_names = json.load(f)
-        print(f"✅ Local disease detection model loaded successfully with {len(class_names)} classes.")
+        print(f"✅ Loaded {len(class_names)} class names")
+    except Exception as e:
+        print(f"❌ Error loading class names: {e}")
+
+# Try loading TFLite model first (optimized for production)
+if os.path.exists(TFLITE_MODEL_PATH):
+    try:
+        print(f"📦 Loading TFLite model from: {TFLITE_MODEL_PATH}")
+        interpreter = tf.lite.Interpreter(model_path=TFLITE_MODEL_PATH)
+        interpreter.allocate_tensors()
+        use_tflite = True
+        
+        # Get input and output details
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+        
+        print(f"✅ TFLite model loaded successfully")
+        print(f"🧠 Model input shape: {input_details[0]['shape']}")
+        print(f"📊 Model output shape: {output_details[0]['shape']}")
+    except Exception as e:
+        print(f"⚠️ Error loading TFLite model: {e}")
+        interpreter = None
+        use_tflite = False
+
+# Fallback to H5 model if TFLite not available
+if not use_tflite and os.path.exists(H5_MODEL_PATH):
+    try:
+        print(f"📦 Loading H5 model from: {H5_MODEL_PATH}")
+        model = tf.keras.models.load_model(H5_MODEL_PATH, compile=False)
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        print(f"✅ H5 model loaded successfully")
         print(f"🧠 Model input shape: {model.input_shape}")
     except Exception as e:
-        print(f"❌ Error loading local model: {e}")
-        import traceback
+        print(f"❌ Error loading H5 model: {e}")
         traceback.print_exc()
         model = None
-else:
-    print(f"❌ Error: Local model or class names file not found.")
-    print(f"   MODEL_PATH exists: {os.path.exists(MODEL_PATH)}")
-    print(f"   CLASSES_PATH exists: {os.path.exists(CLASSES_PATH)}")
+
+# Check if any model loaded
+if not use_tflite and model is None:
+    print(f"❌ Error: No model could be loaded")
+    print(f"   TFLite path exists: {os.path.exists(TFLITE_MODEL_PATH)}")
+    print(f"   H5 path exists: {os.path.exists(H5_MODEL_PATH)}")
+    print(f"   Classes path exists: {os.path.exists(CLASSES_PATH)}")
     print(f"   Current directory: {os.getcwd()}")
     print(f"   Files in directory: {os.listdir('.')[:10]}")
+else:
+    model_type = "TFLite" if use_tflite else "H5"
+    print(f"✅ Using {model_type} model for predictions")
 
 # --- 5. Yield Impact Database ---
 yield_impact_db = {
@@ -1351,7 +1413,9 @@ def get_fallback_translation(text, target_language):
 # --- 10. Prediction API Endpoint ---
 @app.route('/predict', methods=['POST'])
 def predict():
-    if model is None: 
+    # Check if any model is loaded
+    model_loaded = (use_tflite and interpreter is not None) or (not use_tflite and model is not None)
+    if not model_loaded: 
         return jsonify({'error': 'Local model not loaded.'}), 500
     
     try:
@@ -1376,7 +1440,25 @@ def predict():
         
         # Make prediction with error handling
         try:
-            prediction = model.predict(processed_image, verbose=0)
+            if use_tflite and interpreter is not None:
+                # TFLite prediction
+                input_details = interpreter.get_input_details()
+                output_details = interpreter.get_output_details()
+                
+                # Set input tensor
+                interpreter.set_tensor(input_details[0]['index'], processed_image.astype(np.float32))
+                
+                # Run inference
+                interpreter.invoke()
+                
+                # Get output tensor
+                prediction = interpreter.get_tensor(output_details[0]['index'])
+            elif model is not None:
+                # H5 Keras model prediction
+                prediction = model.predict(processed_image, verbose=0)
+            else:
+                return jsonify({'error': 'No model available for prediction'}), 500
+            
             predicted_class_index = np.argmax(prediction[0])
             confidence = float(prediction[0][predicted_class_index])
             predicted_class_name = class_names[predicted_class_index]
@@ -1385,6 +1467,7 @@ def predict():
             print(f"🎯 Prediction: {formatted_disease_name} (confidence: {confidence:.2f})")
         except Exception as pred_error:
             print(f"❌ Model prediction error: {pred_error}")
+            traceback.print_exc()
             return jsonify({'error': 'Failed to analyze image. Please try again.'}), 500
 
         yield_impact = yield_impact_db.get(predicted_class_name, yield_impact_db['default'])
